@@ -37,7 +37,6 @@
 
 - [`part1_incident_response/`](part1_incident_response/) — расследование инцидентов и аудит
 - [`part2_remediation/`](part2_remediation/) — устранение несоответствий и развитие ИБ
-- [`reports/`](reports/) — финальные отчёты и артефакты
 
 ---
 
