@@ -1,7 +1,6 @@
 ``markdown
 # Внедрение антивирусной защиты (ClamAV)
 
-## Ansible‑плейбук `clamav.yml`
 
 
 Скрипт clamav_full_scan.sh
