@@ -1,29 +1,39 @@
 # Структура организационных единиц (OU)
 
 ## Дерево OU
+
+```text
 int.local.host
-├── Disabled Accounts # заблокированные / уволенные сотрудники
+├── Disabled Accounts
+│   └── Заблокированные / уволенные сотрудники
+│
 ├── Groups
-│ ├── ADMIN # административные группы
-│ │ ├── Domain Admins
-│ │ └── Enterprise Admins
-│ ├── INFRA # инфраструктурные группы
-│ │ ├── SG-ADM-T1-SRV-LINUX-ADMINS
-│ │ └── SG-ADM-T1-NET-ADMINS
-│ ├── ORG # организационные (ролевые) группы
-│ │ ├── SG-ORG-ALL-Users
-│ │ ├── SG-ORG-IT-Users
-│ │ └── SG-ORG-OPS-Users
-│ └── RES # ресурсные группы
-│ ├── SG-RES-SHARE-hq_dep_it-RW
-│ └── SG-RES-SHARE-hq_dep_legal-RO
+│   ├── ADMIN
+│   │   ├── Domain Admins
+│   │   └── Enterprise Admins
+│   │
+│   ├── INFRA
+│   │   ├── SG-ADM-T1-SRV-LINUX-ADMINS
+│   │   └── SG-ADM-T1-NET-ADMINS
+│   │
+│   ├── ORG
+│   │   ├── SG-ORG-ALL-Users
+│   │   ├── SG-ORG-IT-Users
+│   │   └── SG-ORG-OPS-Users
+│   │
+│   └── RES
+│       ├── SG-RES-SHARE-hq_dep_it-RW
+│       └── SG-RES-SHARE-hq_dep_legal-RO
+│
 ├── Users
-│ ├── m.romanov
-│ ├── a.ivanov
-│ ├── adm_* (административные учётки)
-│ └── … (остальные пользователи)
+│   ├── m.romanov
+│   ├── a.ivanov
+│   ├── adm_* (административные учётные записи)
+│   └── ... (остальные пользователи)
+│
 └── Service Accounts
-└── svc_admin_ib
+    └── svc_admin_ib
+```
 
 text
 
