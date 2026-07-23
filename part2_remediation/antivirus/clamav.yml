@@ -1,1 +1,58 @@
+```yaml
+---
+- name: Install and configure ClamAV on Linux hosts
+  hosts: ws_msk_all, srv_fs
+  become: yes
+  vars:
+    clamav_scan_script: /usr/local/bin/clamav_full_scan.sh
+    clamav_log_dir: /var/log/clamav
+    cron_hour: 2
+    cron_minute: 0
 
+  tasks:
+    - name: Install ClamAV packages
+      apt:
+        name:
+          - clamav
+          - clamav-daemon
+          - clamav-freshclam
+        state: present
+        update_cache: yes
+
+    - name: Ensure freshclam service is enabled and started
+      systemd:
+        name: clamav-freshclam
+        enabled: yes
+        state: started
+
+    - name: Create log directory for ClamAV
+      file:
+        path: "{{ clamav_log_dir }}"
+        state: directory
+        owner: clamav
+        group: clamav
+        mode: '0755'
+
+    - name: Create full scan script
+      copy:
+        dest: "{{ clamav_scan_script }}"
+        mode: '0755'
+        content: |
+          #!/bin/bash
+          LOGFILE="{{ clamav_log_dir }}/clamav_scan_$(date +%Y%m%d).log"
+          echo "Starting full system scan at $(date)" >> $LOGFILE
+          clamscan -r / --exclude-dir=/sys --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/run --exclude-dir=/mnt --exclude-dir=/media --exclude-dir=/var/log/clamav -l $LOGFILE
+          echo "Scan finished at $(date)" >> $LOGFILE
+
+    - name: Add cron job for daily full scan
+      cron:
+        name: "ClamAV daily full system scan"
+        minute: "{{ cron_minute }}"
+        hour: "{{ cron_hour }}"
+        job: "{{ clamav_scan_script }}"
+        state: present
+
+    - name: Ensure virus definitions are up to date
+      command: freshclam
+      register: freshclam_result
+      changed_when: "'Database updated' in freshclam_result.stdout"
