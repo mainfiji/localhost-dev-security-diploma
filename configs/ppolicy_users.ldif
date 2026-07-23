@@ -1,1 +1,12 @@
-
+dn: cn=PasswordPolicyUsers,ou=Policies,dc=local,dc=host
+objectClass: pwdPolicy
+objectClass: top
+cn: PasswordPolicyUsers
+pwdAttribute: userPassword
+pwdMaxAge: 15552000
+pwdMinLength: 8
+pwdMaxFailure: 5
+pwdLockout: TRUE
+pwdLockoutDuration: 900
+pwdInHistory: 3
+pwdCheckQuality: 1
