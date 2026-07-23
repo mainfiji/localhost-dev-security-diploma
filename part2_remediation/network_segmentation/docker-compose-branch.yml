@@ -1,3 +1,6 @@
+yaml
+# Фрагмент конфигурации для переключения хостов в сегменты
+
 # DMZ
 srv_branch_polarproxy:
   environment:
