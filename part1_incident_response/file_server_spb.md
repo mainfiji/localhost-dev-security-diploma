@@ -8,7 +8,7 @@
 ```bash
 setfacl -x g:SG-RES-SHARE-hq_dep_legal-RW /srv/samba/Share/hq_dep_hr
 ```
-Проблема 2. Начальник IT осведомлён о делах компании
+## Проблема 2. Начальник IT осведомлён о делах компании
 Причина: учётная запись msvetlov включена напрямую в ресурсные группы:
 
 SG-RES-SHARE-hq_common_payroll-RO
@@ -25,7 +25,7 @@ SG-RES-SHARE-hq_dep_hr-RW
 
 Провести ревизию всех ресурсных групп
 
-Проблема 3. Удаление файлов в папке логистики
+## Проблема 3. Удаление файлов в папке логистики
 Причина: сотрудник dkovalenko случайно запустил скрипт очистки, удаливший файлы старше 30 дней. Также избыточные права на запись имели многие сотрудники.
 
 Решение:
@@ -34,9 +34,10 @@ SG-RES-SHARE-hq_dep_hr-RW
 
 Скорректировать права:
 
-bash
+```bash
 setfacl -m g:SG-RES-SHARE-hq_dep_log-RW:rwx /srv/samba/Share/hq_dep_log
 setfacl -x g:SG-RES-SHARE-hq_dep_other-RW /srv/samba/Share/hq_dep_log
+```
 Включить теневые копии (vfs objects = shadow_copy2 в smb.conf)
 
 Настроить ежедневное резервное копирование
