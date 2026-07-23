@@ -1,52 +1,74 @@
-# Задача 7. Настройка доступа на файловом сервере МСК
+# Задача 8. Настройка доступа и логирования на файловом сервере СПБ
 
-## Проблема 1. Юридический отдел видит документы HR
+## Конфигурация smb.conf
 
-**Причина:** ресурсная группа `SG-RES-SHARE-hq_dep_legal-RW` была ошибочно добавлена в ACL на папку `hq_dep_hr`.
+```ini
+[global]
+workgroup = WORKGROUP
+security = user
+map to guest = Never
+usershare allow guests = no
 
-**Решение:**
-```bash
-setfacl -x g:SG-RES-SHARE-hq_dep_legal-RW /srv/samba/Share/hq_dep_hr
+passdb backend = ldapsam:ldap://srv_branch_dns
+ldap suffix = dc=local,dc=host
+ldap admin dn = cn=admin,dc=local,dc=host
+ldap user suffix = ou=users
+ldap group suffix = ou=groups
+ldap ssl = no
+
+log file = /var/log/samba/log.%m
+max log size = 50
+
+# Настройка аудита
+vfs objects = full_audit
+full_audit:prefix = %u|%I|%S
+full_audit:success = connect disconnect open opendir read write rename unlink mkdir rmdir
+full_audit:failure = none
+full_audit:facility = LOCAL7
+full_audit:priority = NOTICE
+
+[share_all]
+path = /srv/samba/share_all
+browseable = yes
+read only = no
+guest ok = no
+valid users = @spb_all
+
+[it]
+path = /srv/samba/it
+browseable = yes
+read only = no
+guest ok = no
+valid users = @spb_it
+
+[hr]
+path = /srv/samba/hr
+browseable = yes
+read only = no
+guest ok = no
+valid users = @spb_hr
+Настройка логирования
+ini
+vfs objects = full_audit
+full_audit:prefix = %u|%I|%S
+full_audit:success = connect disconnect open opendir read write rename unlink mkdir rmdir
+full_audit:failure = none
+full_audit:facility = LOCAL7
+full_audit:priority = NOTICE
+Логи записываются в:
+
+/var/log/syslog
+
+/var/log/samba/log.*
+
 ```
-## Проблема 2. Начальник IT осведомлён о делах компании
-Причина: учётная запись msvetlov включена напрямую в ресурсные группы:
+Результат
+Гостевой доступ отключён (guest ok = no, map to guest = Never)
 
-SG-RES-SHARE-hq_common_payroll-RO
+Настроена аутентификация через LDAP
 
-SG-RES-SHARE-hq_dep_hr-RW
+Созданы ресурсные группы для отделов (спб_all, спб_it, спб_hr)
 
-Это нарушает политику (п. 3.4.3 — запрещено прямое добавление пользователей в ресурсные группы).
+Включено логирование всех операций с файлами
 
-Решение:
-
-Удалить msvetlov из ресурсных групп
-
-Оставить только организационные группы (HR, бухгалтерия)
-
-Провести ревизию всех ресурсных групп
-
-## Проблема 3. Удаление файлов в папке логистики
-Причина: сотрудник dkovalenko случайно запустил скрипт очистки, удаливший файлы старше 30 дней. Также избыточные права на запись имели многие сотрудники.
-
-Решение:
-
-Восстановить папку из теневых копий Samba (\\srv_fs\hq_dep_log\@GMT-*)
-
-Скорректировать права:
-
-```bash
-setfacl -m g:SG-RES-SHARE-hq_dep_log-RW:rwx /srv/samba/Share/hq_dep_log
-setfacl -x g:SG-RES-SHARE-hq_dep_other-RW /srv/samba/Share/hq_dep_log
-```
-Включить теневые копии (vfs objects = shadow_copy2 в smb.conf)
-
-Настроить ежедневное резервное копирование
-
-Нелегитимные учётные записи
-Обнаружены и перемещены в OU=Disabled Accounts:
-
-Учётная запись	Причина
-test	Тестовая учётная запись
-aivanov2	Дубликат учётной записи
-(другие записи, отсутствующие в штатном расписании)	Уволенные сотрудники
-Всего заблокировано: 3 учётные записи
+Срок хранения логов — 52 недели (ротация weekly)
