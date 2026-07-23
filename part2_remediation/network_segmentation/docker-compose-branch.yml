@@ -1,1 +1,30 @@
+# DMZ
+srv_branch_polarproxy:
+  environment:
+    GATEWAY_IP: ${SUBNET_BRANCH_DMZ}.${IP_BRANCH_FW}
+  networks:
+    branch_dmz_net:
+      ipv4_address: ${SUBNET_BRANCH_DMZ}.${IP_SRV_BRANCH_POLARPROXY}
 
+srv_branch_wg_gate:
+  environment:
+    GATEWAY_IP: ${SUBNET_BRANCH_DMZ}.${IP_BRANCH_FW}
+  networks:
+    branch_dmz_net:
+      ipv4_address: ${SUBNET_BRANCH_DMZ}.${IP_SRV_BRANCH_WG_GATE}
+
+# Servers
+srv_branch_fs:
+  environment:
+    GATEWAY_IP: ${SUBNET_BRANCH_SERVERS}.${IP_BRANCH_FW}
+  networks:
+    branch_servers_net:
+      ipv4_address: ${SUBNET_BRANCH_SERVERS}.${IP_SRV_BRANCH_FS}
+
+# Admin
+srv_branch_bastion:
+  environment:
+    GATEWAY_IP: ${SUBNET_BRANCH_ADMIN}.${IP_BRANCH_FW}
+  networks:
+    branch_admin_net:
+      ipv4_address: ${SUBNET_BRANCH_ADMIN}.${IP_SRV_BRANCH_BASTION}
