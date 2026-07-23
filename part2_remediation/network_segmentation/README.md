@@ -49,103 +49,16 @@
 
 ---
 
-## Конфигурация docker‑compose‑branch.yml (фрагменты)
+## Конфигурационные файлы
 
-```yaml
-# DMZ
-srv_branch_polarproxy:
-  environment:
-    GATEWAY_IP: ${SUBNET_BRANCH_DMZ}.${IP_BRANCH_FW}
-  networks:
-    branch_dmz_net:
-      ipv4_address: ${SUBNET_BRANCH_DMZ}.${IP_SRV_BRANCH_POLARPROXY}
+- [docker-compose-branch.yml](docker-compose-branch.yml) – фрагмент конфигурации для переключения хостов в сегменты.
+- [nftables_branch.conf](nftables_branch.conf) – правила межсетевого экрана для офиса СПБ.
+- [network_diagram.png](network_diagram.png) – схема сети.
 
-srv_branch_wg_gate:
-  environment:
-    GATEWAY_IP: ${SUBNET_BRANCH_DMZ}.${IP_BRANCH_FW}
-  networks:
-    branch_dmz_net:
-      ipv4_address: ${SUBNET_BRANCH_DMZ}.${IP_SRV_BRANCH_WG_GATE}
+---
 
-# Servers
-srv_branch_fs:
-  environment:
-    GATEWAY_IP: ${SUBNET_BRANCH_SERVERS}.${IP_BRANCH_FW}
-  networks:
-    branch_servers_net:
-      ipv4_address: ${SUBNET_BRANCH_SERVERS}.${IP_SRV_BRANCH_FS}
+## Проверка доступности
 
-# Admin
-srv_branch_bastion:
-  environment:
-    GATEWAY_IP: ${SUBNET_BRANCH_ADMIN}.${IP_BRANCH_FW}
-  networks:
-    branch_admin_net:
-      ipv4_address: ${SUBNET_BRANCH_ADMIN}.${IP_SRV_BRANCH_BASTION}
-```
-Конфигурация nftables (branch_fw)
-```bash
-#!/usr/sbin/nft -f
-
-flush ruleset
-
-table inet filter {
-    chain input {
-        type filter hook input priority 0; policy drop;
-        iif lo accept
-        ct state established,related accept
-        ip protocol icmp accept
-        ip saddr 10.97.26.0/24 tcp dport 22 accept   # SSH из Admin
-    }
-
-    chain forward {
-        type filter hook forward priority 0; policy drop;
-        ct state established,related accept
-
-        # Users → DNS
-        ip saddr 10.97.23.0/24 ip daddr 10.97.23.44 udp dport 53 accept
-        ip saddr 10.97.23.0/24 ip daddr 10.97.23.44 tcp dport 53 accept
-
-        # Users → Proxy (DMZ)
-        ip saddr 10.97.23.0/24 ip daddr 10.97.24.50 tcp dport 3128 accept
-
-        # Proxy → Интернет
-        ip saddr 10.97.24.50 oifname "brnch-uplink" tcp dport {80,443} accept
-
-        # Users → File Server
-        ip saddr 10.97.23.0/24 ip daddr 10.97.25.33 tcp dport 445 accept
-
-        # Admin → All (SSH)
-        ip saddr 10.97.26.0/24 tcp dport 22 accept
-
-        # Users → LDAP (центр)
-        ip saddr 10.97.23.0/24 ip daddr 192.168.201.199 tcp dport 389 accept
-
-        # Users → NTP (центр)
-        ip saddr 10.97.23.0/24 udp dport 123 accept
-
-        # Users → Mail (центр)
-        ip saddr 10.97.23.0/24 tcp dport {25,143,587} accept
-
-        log prefix "FW-BLOCK: "
-        drop
-    }
-
-    chain output {
-        type filter hook output priority 0; policy accept;
-    }
-}
-
-table ip nat {
-    chain postrouting {
-        type nat hook postrouting priority 100;
-        oifname "brnch-uplink" masquerade
-    }
-}
-```
-Проверка доступности
-С рабочей станции пользователя (ws_spb_*) доступны: DNS, прокси, файловый сервер, LDAP, NTP, почта.
-
-С бастиона (admin) доступ по SSH ко всем хостам.
-
-Из интернета доступны только опубликованные сервисы (через DNAT).
+- С рабочей станции пользователя (ws_spb_*) доступны: DNS, прокси, файловый сервер, LDAP, NTP, почта.
+- С бастиона (admin) доступ по SSH ко всем хостам.
+- Из интернета доступны только опубликованные сервисы (через DNAT).
