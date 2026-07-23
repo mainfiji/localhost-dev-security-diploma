@@ -1,22 +1,55 @@
-``markdown
 # Внедрение антивирусной защиты (ClamAV)
 
+## Цель
 
+Внедрить антивирусную защиту на всех пользовательских хостах в центральном офисе и на файловом сервере для соответствия требованиям регулятора (АВЗ.1, АВЗ.2) и снижения риска заражения вредоносным ПО.
 
-Скрипт clamav_full_scan.sh
+---
+
+## Выполненные задачи
+
+1. Разработан Ansible-плейбук для автоматической установки и настройки ClamAV.
+2. ClamAV установлен на всех хостах `ws_msk_*` и на файловом сервере `srv_fs`.
+3. Настроено ежедневное полное сканирование файловой системы через cron.
+4. Проверена работоспособность на тестовом файле EICAR.
+
+---
+
+## Содержание
+
+- [Ansible-плейбук](clamav.yml)
+- [Скрипт полного сканирования](clamav_full_scan.sh)
+- [Результаты тестирования](test_results.md)
+
+---
+
+## Реализация
+
+### Установка ClamAV
+
+```bash
+sudo apt update
+sudo apt install clamav clamav-daemon clamav-freshclam -y
+Обновление баз
 bash
-#!/bin/bash
-LOGFILE="/var/log/clamav/clamav_scan_$(date +%Y%m%d).log"
-echo "Starting full system scan at $(date)" >> $LOGFILE
-clamscan -r / --exclude-dir=/sys --exclude-dir=/proc --exclude-dir=/dev --exclude-dir=/run --exclude-dir=/mnt --exclude-dir=/media --exclude-dir=/var/log/clamav -l $LOGFILE
-echo "Scan finished at $(date)" >> $LOGFILE
-Проверка с EICAR‑файлом
+sudo freshclam
+Настройка cron для ежедневного сканирования
 bash
+0 2 * * * /usr/local/bin/clamav_full_scan.sh
+```
+Проверка с EICAR
+```bash
 echo 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*' > /tmp/eicar.com
 clamscan /tmp/eicar.com
 # /tmp/eicar.com: Eicar-Test-Signature FOUND
-Результаты проверочного сценария Ansible (test_a_result.txt)
-Хост	Статус
-ws_msk_000019, ws_msk_000021, … , ws_msk_000242	OK
-srv_fs	OK
-Все хосты успешно прошли проверку – ClamAV установлен, базы обновлены, cron‑задание добавлено.
+```
+Выводы
+Антивирусная защита внедрена на всех пользовательских хостах и файловом сервере.
+
+Базы обновляются ежедневно.
+
+Полное сканирование выполняется каждую ночь.
+
+Тест EICAR пройден успешно – ClamAV детектирует вредоносное ПО.
+
+Все задачи по антивирусной защите выполнены.
