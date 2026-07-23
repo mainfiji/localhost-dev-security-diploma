@@ -1,1 +1,8 @@
-
+ldif
+dn: cn=PasswordPolicyService,ou=Policies,dc=local,dc=host
+objectClass: pwdPolicy
+cn: PasswordPolicyService
+pwdMaxAge: 31536000
+pwdMinLength: 12
+pwdMaxFailure: 10
+pwdLockout: FALSE
